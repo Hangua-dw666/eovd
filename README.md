@@ -1,67 +1,67 @@
 # A Systematic Evaluation of GNN Explainers for Vulnerability Detection: Faithfulness, Semantic Alignment, and Robustness
 
-欢迎来到我们的代码仓库 🌟。
+Welcome to our code repository 🌟.
 
-这里我们提供了我们论文 📚 "A Systematic Evaluation of GNN Explainers for Vulnerability Detection: Faithfulness, Semantic Alignment, and Robustness" 的PyTorch实现。
+Here we provide the PyTorch implementation of our paper 📚 "A Systematic Evaluation of GNN Explainers for Vulnerability Detection: Faithfulness, Semantic Alignment, and Robustness".
 
-我们很高兴与社区分享我们的工作，并鼓励协作探索和讨论。
+We are excited to share our work with the community and encourage collaborative exploration and discussion.
 
-如果您有任何问题或在使用我们的代码时遇到问题，请随时通过 `Issues` 部分提交。
+If you have any questions or encounter issues while using our code, please feel free to submit them through the `Issues` section.
 
-我们的实现也在https://github.com/Hangua-dw666/eovd 上展示。
+Our implementation is also showcased at https://github.com/Hangua-dw666/eovd.
 
 
 
-**仓库概览：**
-- [环境配置](#环境配置) - 设置运行我们代码所需环境的指南
-- [数据准备](#数据准备) - 如何为我们的模型准备数据的说明
-- [训练基于GNN的漏洞检测器](#训练基于gnn的漏洞检测器) - 训练图神经网络模型进行漏洞检测的步骤
-- [解释基于GNN的漏洞检测器](#解释基于gnn的漏洞检测器) - 生成GNN模型决策解释的步骤
-- [评估指标（三维度）](#评估指标三维度) - 忠实性（PN/PS）、定位（F1/TLC/FLC）与鲁棒性（NI-SI-PC）的评估命令
+**Repository Overview:**
+- [Environment Setup](#environment-setup) - Guide to setting up the environment required to run our code
+- [Data Preparation](#data-preparation) - Instructions on how to prepare data for our model
+- [Training GNN-based Vulnerability Detectors](#training-gnn-based-vulnerability-detectors) - Steps to train Graph Neural Network models for vulnerability detection
+- [Explaining GNN-based Vulnerability Detectors](#explaining-gnn-based-vulnerability-detectors) - Steps to generate explanations for GNN model decisions
+- [Evaluation Metrics (Three Dimensions)](#evaluation-metrics-three-dimensions) - Evaluation commands for faithfulness (PN/PS), localization (F1/TLC/FLC), and robustness (NI-SI-PC)
 
-# 环境配置
+# Environment Setup
 
-## CUDA依赖
+## CUDA Dependencies
 
-我们的工作依赖于特定版本的CUDA工具包和cuDNN。请确保您安装了以下版本：
-- **CUDA工具包**: 版本 11.7.0
-- **cuDNN**: 版本 8.8.1 (与CUDA 11.x兼容)
+Our work relies on specific versions of the CUDA Toolkit and cuDNN. Please ensure you have the following versions installed:
+- **CUDA Toolkit**: version 11.7.0
+- **cuDNN**: version 8.8.1 (compatible with CUDA 11.x)
 
-设置步骤如下：
-1. 下载所需版本：
-    - [CUDA工具包归档](https://developer.nvidia.com/cuda-toolkit-archive)
-    - [cuDNN归档](https://developer.nvidia.com/rdp/cudnn-archive)
-2. 安装CUDA：
+Setup steps are as follows:
+1. Download the required versions:
+    - [CUDA Toolkit Archive](https://developer.nvidia.com/cuda-toolkit-archive)
+    - [cuDNN Archive](https://developer.nvidia.com/rdp/cudnn-archive)
+2. Install CUDA:
     ```shell
     sudo sh cuda_11.7.0_515.43.04_linux.run
     ```
-3. 设置cuDNN：
+3. Set up cuDNN:
     ```shell
     tar -zxvf cudnn-linux-x86_64-8.8.1.3_cuda11-archive.tar.xz
     sudo cp cudnn-linux-x86_64-8.8.1.3_cuda11-archive/include/cudnn.h  /usr/local/cuda-11.7/include
     sudo cp cudnn-linux-x86_64-8.8.1.3_cuda11-archive/lib/libcudnn*  /usr/local/cuda-11.7/lib64
     sudo chmod a+r /usr/local/cuda-11.7/include/cudnn.h  /usr/local/cuda-11.7/lib64/libcudnn*
     ```
-4. 配置环境变量：
+4. Configure environment variables:
     ```shell
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-11.7/lib64
     export PATH=$PATH:/usr/local/cuda-11.7/bin
     export CUDA_HOME=$CUDA_HOME:/usr/local/cuda-11.7
     ```
 
-## Python库依赖
+## Python Library Dependencies
 
-首先创建一个Conda环境：
+First, create a Conda environment:
 ```shell
 conda create -n cfvd python=3.9
 conda activate cfvd
 ```
 
-我们的实现基于特定版本的PyTorch和Pytorch Geometric：
-- **PyTorch**: 版本 2.0.0
-- **Pytorch Geometric**: 版本 2.3.1
+Our implementation is based on specific versions of PyTorch and PyTorch Geometric:
+- **PyTorch**: version 2.0.0
+- **PyTorch Geometric**: version 2.3.1
 
-使用以下命令安装它们：
+Install them using the following commands:
 ```shell
 pip install https://download.pytorch.org/whl/cu117/torch-2.0.0%2Bcu117-cp39-cp39-linux_x86_64.whl
 pip install https://download.pytorch.org/whl/cu117/torchvision-0.15.1%2Bcu117-cp39-cp39-linux_x86_64.whl
@@ -73,7 +73,7 @@ pip install https://data.pyg.org/whl/torch-2.0.0%2Bcu117/torch_spline_conv-1.2.2
 pip install torch_geometric
 ```
 
-其他必需的Python包如下：
+Other required Python packages are as follows:
 ```shell
 pip install numpy==1.24.3
 pip install pandas==2.0.1
@@ -92,50 +92,50 @@ pip install rdkit
 
 ## Joern
 
-对于这个项目，我们利用Joern为易受攻击和不易受攻击的代码段生成图。需要注意的是，Joern是一个积极开发的工具，经常更新可能会引入功能变化。如果您希望无缝复制我们的图生成过程，我们建议使用Joern版本1.1.260。以下是设置方法：
+For this project, we utilize Joern to generate graphs for vulnerable and non-vulnerable code snippets. Note that Joern is an actively developed tool, and frequent updates may introduce functional changes. If you wish to seamlessly replicate our graph generation process, we recommend using Joern version 1.1.260. Here is how to set it up:
 ```shell
 wget https://github.com/joernio/joern/releases/download/v1.1.260/joern-install.sh
 chmod +x ./joern-install.sh
 printf 'Y\n/bin/joern\ny\n/usr/local/bin\n\n'  | sudo ./joern-install.sh --interactive
 ```
 
-对于那些尝试使用较新Joern版本的用户，或者如果您对Joern的功能有具体疑问，我们建议访问Joern的官方仓库：[Joern GitHub仓库](https://github.com/joernio/joern)。它提供了关于代码图生成等的全面文档和见解。
+For those attempting to use a newer version of Joern, or if you have specific questions about Joern's functionality, we recommend visiting Joern's official repository: [Joern GitHub Repository](https://github.com/joernio/joern). It provides comprehensive documentation and insights on code graph generation and more.
 
-# 数据准备
+# Data Preparation
 
-我们的数据准备过程与[LineVd](https://github.com/davidhin/linevd)项目密切相关。以下是设置和处理数据集的逐步指南。
+Our data preparation process is closely related to the [LineVd](https://github.com/davidhin/linevd) project. Below is a step-by-step guide to setting up and processing the dataset.
 
-## 下载
+## Download
 
-首先，通过从[此链接](https://drive.google.com/file/d/1-0VhnHBp9IGh90s2wCNjeCMuy70HPl8X/view)获取`MSR_data_cleaned.csv`文件来下载Big-Vul数据集的清理版本。有关Big-Vul的详细信息，请访问其[官方仓库](https://github.com/ZeoVan/MSR_20_Code_vulnerability_CSV_Dataset)。
+First, download the cleaned version of the Big-Vul dataset by obtaining the `MSR_data_cleaned.csv` file from [this link](https://drive.google.com/file/d/1-0VhnHBp9IGh90s2wCNjeCMuy70HPl8X/view). For details about Big-Vul, please visit its [official repository](https://github.com/ZeoVan/MSR_20_Code_vulnerability_CSV_Dataset).
 
-下载后，使用以下命令解压并将数据集移动到适当位置：
+After downloading, use the following commands to unzip and move the dataset to the appropriate location:
 ```shell
 unzip MSR_data_cleaned.zip
 rm MSR_data_cleaned.zip
 mv MSR_data_cleaned.csv cfexplainer/storage/external
 ```
 
-运行以下命令配置数据存储路径：
+Run the following commands to configure the data storage path:
 ```shell
 cd cfexplainer
 export SINGSTORAGE=$(pwd)
 ```
 
-## 数据预处理
+## Data Preprocessing
 
-要预处理Big-Vul数据集，请运行：
+To preprocess the Big-Vul dataset, run:
 
 ```shell
 python data_pre.py
 ```
 
-成功执行后，将创建一个`storage/cache`目录。这用作存储脚本运行缓存数据的位置。在此目录中，您将找到两个子目录：`minimal_datasets`和`bigvul`。这些设计用于快速访问预处理的Big-Vul数据集。
+Upon successful execution, a `storage/cache` directory will be created. This serves as the location for storing cached data from script runs. Within this directory, you will find two subdirectories: `minimal_datasets` and `bigvul`. These are designed for fast access to the preprocessed Big-Vul dataset.
 
 
-## 代码图生成
+## Code Graph Generation
 
-要使用Joern工具生成代码图，请按顺序执行以下命令：
+To generate code graphs using the Joern tool, execute the following commands in order:
 ```shell
 python code_graph_gen.py 1
 python code_graph_gen.py 2
@@ -144,34 +144,34 @@ python code_graph_gen.py 4
 python code_graph_gen.py 5
 ```
 
-这些命令将创建一个目录`storage/processed/bigvul`，其中包含两个目录`before`和`after`。`before`目录存放易受攻击代码片段的代码图，而`after`目录存放其相应修复版本的图。例如，文件`before/177736.c`、`before/177736.nodes.json`和`before/177736.edges.json`存储Big-Vul数据集中ID为`177736`的样本的原始源代码、节点属性和控制/数据流边。
+These commands will create a directory `storage/processed/bigvul` containing two directories: `before` and `after`. The `before` directory stores the code graphs of vulnerable code snippets, while the `after` directory stores the graphs of their corresponding fixed versions. For example, the files `before/177736.c`, `before/177736.nodes.json`, and `before/177736.edges.json` store the original source code, node attributes, and control/data flow edges for the sample with ID `177736` in the Big-Vul dataset.
 
-然后，您可以为`train/valid/test`分区构建代码图数据集，执行这些命令：
+Then, you can build the code graph dataset for the `train/valid/test` partitions by executing these commands:
 ```shell
 python graph_dataset.py train
 python graph_dataset.py val
 python graph_dataset.py test
 ```
-它将生成一个目录`storage/cache/vul_graph_feat`来缓存代码的图特征。同时，将形成三个新目录`storage/processed/vul_graph_dataset/train_processed`、`storage/processed/vul_graph_dataset/val_processed`和`storage/processed/vul_graph_dataset/test_processed`，存放分区的代码图数据集。在这些图数据集中，每个单独的代码图都有一个节点特征矩阵$\mathbf{X} \in \mathcal{R}^{n \times d}$和一个邻接矩阵$\mathbf{A} \in \mathcal{R}^{n \times n}$，其中$n$表示节点数，$d$是特征维度。为了节省内存空间，邻接矩阵采用`edge index`数据结构。`edge index`是一个$2 \times E$矩阵，其中$E$是边的数量。两行表示：
-- 第一行包含边的源节点。
-- 第二行包含边的目标节点。
+It will generate a directory `storage/cache/vul_graph_feat` to cache the graph features of the code. Meanwhile, three new directories `storage/processed/vul_graph_dataset/train_processed`, `storage/processed/vul_graph_dataset/val_processed`, and `storage/processed/vul_graph_dataset/test_processed` will be formed to store the partitioned code graph datasets. In these graph datasets, each individual code graph has a node feature matrix $\mathbf{X} \in \mathcal{R}^{n \times d}$ and an adjacency matrix $\mathbf{A} \in \mathcal{R}^{n \times n}$, where $n$ denotes the number of nodes and $d$ is the feature dimension. To save memory space, the adjacency matrix adopts the `edge index` data structure. The `edge index` is a $2 \times E$ matrix, where $E$ is the number of edges. The two rows represent:
+- The first row contains the source nodes of the edges.
+- The second row contains the target nodes of the edges.
 
-例如，如果`edge index`包含一列$[3, 5]$，这表示从节点3到节点5的边。
+For example, if the `edge index` contains a column $[3, 5]$, this indicates an edge from node 3 to node 5.
 
-## 提取代码版本差异
+## Extracting Code Version Diffs
 
-要提取从修复前版本中删除的行和添加到修复后版本中的行，特别是针对易受攻击的代码，请执行以下命令：
+To extract the lines removed from the pre-fix version and the lines added to the post-fix version, specifically for vulnerable code, execute the following command:
 ```shell
 python line_extract.py
 ```
-此命令将在`storage/processed/bigvul/eval/statement_labels.pkl`生成一个文件，包含提取的"删除/添加"行。
+This command will generate a file at `storage/processed/bigvul/eval/statement_labels.pkl` containing the extracted "deleted/added" lines.
 
 
-# 训练基于GNN的漏洞检测器
+# Training GNN-based Vulnerability Detectors
 
-这项工作研究了四种基于图神经网络的漏洞检测器：DeepWukong、Devign、IVDetect 和 Reveal。
+This work studies four Graph Neural Network-based vulnerability detectors: DeepWukong, Devign, IVDetect, and Reveal.
 
-要训练这些检测器，请执行以下命令：
+To train these detectors, execute the following commands:
 ```shell
 python main.py --do_train --do_test --gnn_model DeepWukong --cuda_id 0
 python main.py --do_train --do_test --gnn_model Devign --cuda_id 0
@@ -179,13 +179,13 @@ python main.py --do_train --do_test --gnn_model IVDetect --cuda_id 0
 python main.py --do_train --do_test --gnn_model Reveal --cuda_id 0
 ```
 
-成功执行后，训练好的模型检查点将保存到目录：`storage/cache/saved_models`。这些检查点代表在验证集上获得最佳性能的基于GNN的检测器。
+Upon successful execution, the trained model checkpoints will be saved to the directory: `storage/cache/saved_models`. These checkpoints represent the GNN-based detectors that achieved the best performance on the validation set.
 
-# 解释基于GNN的漏洞检测器
+# Explaining GNN-based Vulnerability Detectors
 
-一旦基于GNN的漏洞检测器训练完成，您可以使用不同的解释器来解释基于GNN的检测器的预测结果。为了评估不同解释器的效果，我们的研究以六个事后解释器作为基线：`gnnexplainer`、`pgexplainer`、`subgraphx`、`gnn_lrp`、`deeplift`、`gradcam`和`cfexplainer`。
+Once the GNN-based vulnerability detectors are trained, you can use different explainers to explain the predictions of the GNN-based detectors. To evaluate the effectiveness of different explainers, our study uses six post-hoc explainers as baselines: `gnnexplainer`, `pgexplainer`, `subgraphx`, `gnn_lrp`, `deeplift`, `gradcam`, and `cfexplainer`.
 
-运行以下命令在不同基于GNN的检测器上训练这些解释器：
+Run the following commands to train these explainers on different GNN-based detectors:
 ```shell
 python main.py --do_test --do_explain --gnn_model DeepWukong --ipt_method specific_explainer --KM 8 --cuda_id 0
 python main.py --do_test --do_explain --gnn_model Devign --ipt_method specific_explainer --KM 8 --cuda_id 0
@@ -194,34 +194,34 @@ python main.py --do_test --do_explain --gnn_model Reveal --ipt_method specific_e
 ```
 
 
-# 评估指标（三维度）
+# Evaluation Metrics (Three Dimensions)
 
-我们的评估体系从三个维度全面衡量解释器：
+Our evaluation system comprehensively measures explainers from three dimensions:
 
-1. **维度一：忠实性指标（Faithfulness）** — PN / PS
-2. **维度二：定位指标（Localization）** — 传统定位指标（Accuracy / Precision / Recall / F1）与因果指标（TLC、FLC）
-3. **维度三：鲁棒性指标（Robustness）** — NI-SI-PC 三维框架
+1. **Dimension 1: Faithfulness Metrics** — PN / PS
+2. **Dimension 2: Localization Metrics** — Traditional localization metrics (Accuracy / Precision / Recall / F1) and causal metrics (TLC, FLC)
+3. **Dimension 3: Robustness Metrics** — NI-SI-PC three-dimensional framework
 
-> **说明：** 维度一与维度二的指标由同一次 `--eval_only` 评估输出；维度三需先 `python generate_variants.py` 生成变体数据，再以 `--do_robust` 评估。各维度"生成解释缓存"的步骤与[解释基于GNN的漏洞检测器](#解释基于gnn的漏洞检测器)一节相同，已执行过可直接复用缓存，无需重复运行。
+> **Note:** The metrics for Dimension 1 and Dimension 2 are output by a single `--eval_only` evaluation run; Dimension 3 requires first running `python generate_variants.py` to generate variant data, then evaluating with `--do_robust`. The "generate explanation cache" step for each dimension is identical to the one in [Explaining GNN-based Vulnerability Detectors](#explaining-gnn-based-vulnerability-detectors); if already executed, the cache can be directly reused without rerunning.
 
-## 维度一：忠实性指标（Faithfulness）—— PN / PS
+## Dimension 1: Faithfulness Metrics — PN / PS
 
-**文字说明：** PN（Probability of Necessity）为移除 top-$K_M$ 重要边后模型预测发生翻转的比例；PS（Probability of Sufficiency）为仅保留 top-$K_M$ 重要边时模型预测保持不变的比例。两者由维度二的 `--eval_only` 评估一次性输出，例如：
+**Description:** PN (Probability of Necessity) is the proportion of cases where the model's prediction flips after removing the top-$K_M$ important edges; PS (Probability of Sufficiency) is the proportion of cases where the model's prediction remains unchanged when only the top-$K_M$ important edges are retained. Both are output in a single run by the Dimension 2 `--eval_only` evaluation, for example:
 
 ```shell
 python main.py --do_test --eval_only --gnn_model DeepWukong --ipt_method cfexplainer --KM 8 --cuda_id 0
 ```
 
-## 维度二：定位指标（Localization）
+## Dimension 2: Localization Metrics
 
-**文字说明：** 传统定位指标（Accuracy / Precision / Recall / F1）基于解释出的代码行与"被删除的漏洞行"的重叠衡量定位精度；因果指标 TLC（Triggering Location Coverage）与 FLC（Fixing Location Coverage）分别衡量解释对漏洞触发行 VTS 与修复行映射 VFS 的覆盖率。指标计算见 `main.py` 的 `eval_exp`，结果写入 `storage/cache/results/{gnn_model}/{ipt_method}.res`。
+**Description:** Traditional localization metrics (Accuracy / Precision / Recall / F1) measure localization accuracy based on the overlap between the explained code lines and the "deleted vulnerability lines"; the causal metrics TLC (Triggering Location Coverage) and FLC (Fixing Location Coverage) measure the coverage of the explanation over the vulnerability triggering lines VTS and the fix line mapping VFS, respectively. The metric computation is in the `eval_exp` function of `main.py`, and the results are written to `storage/cache/results/{gnn_model}/{ipt_method}.res`.
 
-**步骤1：生成解释缓存**（与[解释基于GNN的漏洞检测器](#解释基于gnn的漏洞检测器)一节相同；已执行过可跳过）
+**Step 1: Generate explanation cache** (same as in [Explaining GNN-based Vulnerability Detectors](#explaining-gnn-based-vulnerability-detectors); skip if already executed)
 
-完整命令参考 `explain.sh`（4 模型 × 6 解释器，每个组合生成一次解释缓存）：
+The full commands are referenced in `explain.sh` (4 models × 6 explainers, generating the explanation cache once for each combination):
 
 ```shell
-# ========== 阶段1：生成解释缓存 ==========
+# ========== Phase 1: Generate explanation cache ==========
 
 # DeepWukong
 for method in gnnexplainer cfexplainer pgexplainer subgraphx deeplift gradcam
@@ -248,10 +248,10 @@ do
 done
 ```
 
-**步骤2：按 $K_M$ 评估**（输出维度一的 PN/PS 与维度二的全部定位指标，$K_M \in \{2, 4, \dots, 20\}$）
+**Step 2: Evaluate by $K_M$** (outputs the PN/PS of Dimension 1 and all localization metrics of Dimension 2, $K_M \in \{2, 4, \dots, 20\}$)
 
 ```shell
-# ========== 阶段2：从缓存评估所有 KM ==========
+# ========== Phase 2: Evaluate all KM from cache ==========
 
 # DeepWukong
 for method in gnnexplainer cfexplainer pgexplainer subgraphx deeplift gradcam
@@ -290,18 +290,18 @@ do
 done
 ```
 
-## 维度三：鲁棒性指标（Robustness）—— NI-SI-PC 三维框架
+## Dimension 3: Robustness Metrics — NI-SI-PC Three-dimensional Framework
 
-**步骤1：生成语义等价变体数据（前置，全数据集仅需一次）**
+**Step 1: Generate semantically equivalent variant data (prerequisite, only once for the entire dataset)**
 
 ```shell
 python generate_variants.py
 ```
 
-**步骤2：生成解释缓存**
+**Step 2: Generate explanation cache**
 
 ```shell
-# ========== 阶段1：生成解释缓存 ==========
+# ========== Phase 1: Generate explanation cache ==========
 
 # DeepWukong
 for method in gnnexplainer cfexplainer pgexplainer subgraphx deeplift gradcam
@@ -328,10 +328,10 @@ do
 done
 ```
 
-**步骤3：鲁棒性评估**（完整命令参考 `robustness_eval.sh`，4 模型 × 6 解释器 × $K_M \in \{2, 4, \dots, 20\}$）：
+**Step 3: Robustness evaluation** (full commands referenced in `robustness_eval.sh`, 4 models × 6 explainers × $K_M \in \{2, 4, \dots, 20\}$):
 
 ```shell
-# ========== 阶段1（如维度二已跑过可跳过）：生成解释缓存 ==========
+# ========== Phase 1 (skip if already run in Dimension 2): Generate explanation cache ==========
 for MODEL in DeepWukong Devign IVDetect Reveal
 do
     for EXPLAINER in subgraphx gradcam deeplift gnnexplainer cfexplainer pgexplainer
@@ -340,7 +340,7 @@ do
     done
 done
 
-# ========== 阶段2：鲁棒性评估 ==========
+# ========== Phase 2: Robustness evaluation ==========
 for MODEL in DeepWukong Devign IVDetect Reveal
 do
     for EXPLAINER in subgraphx gradcam deeplift gnnexplainer cfexplainer pgexplainer
@@ -353,75 +353,74 @@ do
 done
 ```
 
-或一键运行仓库脚本：
+Or run the repository script with one command:
 
 ```shell
-bash robustness_eval.sh phase1        # 生成解释缓存（每模型×解释器一次）
-bash robustness_eval.sh phase2 0      # 按 K_M 循环评估 NI/SI/PC
+bash robustness_eval.sh phase1        # Generate explanation cache (once per model × explainer)
+bash robustness_eval.sh phase2 0      # Evaluate NI/SI/PC by looping over K_M
 ```
 
-> 注：`robustness_eval.sh` 中 `MODELS` 与 `EXPLAINERS` 两个数组可按需修改。
+> Note: The `MODELS` and `EXPLAINERS` arrays in `robustness_eval.sh` can be modified as needed.
 
-# 项目文件架构
+# Project File Architecture
 
-以下是文件结构的概述，帮助您理解仓库的组织结构：
+Below is an overview of the file structure to help you understand the organization of the repository:
 
-## 仓库结构
+## Repository Structure
 
 ```
 counterfactual-vulnerability-detection
-├─ README.md                       # 项目说明（本文档）
-├─ Framework.jpg                   # 框架图（README 引用）
-├─ .gitignore                      # 上传过滤规则（忽略环境/数据/结果）
-├─ cfexplainer/                    # 核心代码目录（全部上传）
-│  ├─ cfvd                         # conda 环境导出文件（依赖清单）
-│  ├─ main.py                      # 统一入口：训练 / 测试 / 解释 / 评估（--do_robust）
-│  ├─ data_pre.py                  # 数据预处理
-│  ├─ code_graph_gen.py            # Joern 代码图生成
-│  ├─ graph_dataset.py             # 图数据集构建（train/val/test）
-│  ├─ line_extract.py              # 修复前后代码行差异提取
-│  ├─ generate_variants.py         # 语义等价变体生成（鲁棒性评估前置）
-│  ├─ explain.sh                   # 解释 + 评估一键脚本
-│  ├─ robustness_eval.sh           # 鲁棒性（NI-SI-PC）评估一键脚本
-│  ├─ models/                      # 检测器与解释器实现
-│  │  ├─ vul_detector.py           #   Detector 实现（按 --gnn_model 选择架构）
-│  │  ├─ cfexplainer.py            #   本文提出的反事实解释器
+├─ README.md                       # Project description (this document)
+├─ Framework.jpg                   # Framework figure (referenced by README)
+├─ .gitignore                      # Upload filter rules (ignores environment/data/results)
+├─ cfexplainer/                    # Core code directory (all uploaded)
+│  ├─ cfvd                         # Conda environment export file (dependency list)
+│  ├─ main.py                      # Unified entry point: train / test / explain / evaluate (--do_robust)
+│  ├─ data_pre.py                  # Data preprocessing
+│  ├─ code_graph_gen.py            # Joern code graph generation
+│  ├─ graph_dataset.py             # Graph dataset construction (train/val/test)
+│  ├─ line_extract.py              # Pre/post-fix code line diff extraction
+│  ├─ generate_variants.py         # Semantically equivalent variant generation (robustness evaluation prerequisite)
+│  ├─ explain.sh                   # Explanation + evaluation one-click script
+│  ├─ robustness_eval.sh           # Robustness (NI-SI-PC) evaluation one-click script
+│  ├─ models/                      # Detector and explainer implementations
+│  │  ├─ vul_detector.py           #   Detector implementation (architecture selected via --gnn_model)
+│  │  ├─ cfexplainer.py            #   The counterfactual explainer proposed in this work
 │  │  ├─ gnnexplainer.py / pgexplainer.py / subgraphx.py
 │  │  ├─ deeplift.py / gradcam.py / gnn_lrp.py / shapley.py / pcf_explainer.py
-│  │  └─ graphcodebert-base/       #   ⚠ 预训练权重，不入库
-│  └─ helpers/                     # 公共工具（全部上传）
-│     ├─ utils.py                  #   缓存/路径工具
-│     ├─ joern.py                  #   Joern 调用封装
-│     └─ git.py                    #   git 相关工具
+│  │  └─ graphcodebert-base/       #   ⚠ Pretrained weights, not included in the repository
+│  └─ helpers/                     # Common utilities (all uploaded)
+│     ├─ utils.py                  #   Cache/path utilities
+│     ├─ joern.py                  #   Joern invocation wrapper
+│     └─ git.py                    #   Git-related utilities
 ```
 
-## 数据与结果存放结构
+## Data and Results Storage Structure
 
-`storage/` 下所有目录均由上文「数据准备」「训练」「解释」等命令生成，位于 `cfexplainer/storage/`：
+All directories under `storage/` are generated by the commands in the "Data Preparation", "Training", "Explaining", etc. sections above, located at `cfexplainer/storage/`:
 
 ```
 storage/
-├─ external/                       # 原始数据与工具链（需自行下载/安装）
-│  ├─ MSR_data_cleaned.csv/.zip    #   Big-Vul 数据集（下载后放入）
-│  ├─ joern-cli/                   #   Joern 安装目录
-│  └─ get_func_graph.scala         #   Joern 图生成脚本
+├─ external/                       # Raw data and toolchain (download/install yourself)
+│  ├─ MSR_data_cleaned.csv/.zip    #   Big-Vul dataset (place after download)
+│  ├─ joern-cli/                   #   Joern installation directory
+│  └─ get_func_graph.scala         #   Joern graph generation script
 ├─ cache/
-│  ├─ minimal_datasets/            #   预处理缓存（data_pre.py）
-│  ├─ bigvul/                      #   版本差异等中间缓存
-│  ├─ vul_graph_feat/              #   图特征缓存（graph_dataset.py）
-│  ├─ saved_models/{模型}/         #   检测器 checkpoint（main.py --do_train）
+│  ├─ minimal_datasets/            #   Preprocessing cache (data_pre.py)
+│  ├─ bigvul/                      #   Intermediate cache such as version diffs
+│  ├─ vul_graph_feat/              #   Graph feature cache (graph_dataset.py)
+│  ├─ saved_models/{model}/        #   Detector checkpoints (main.py --do_train)
 │  │  └─ checkpoint-best-acc/model.bin
-│  ├─ explainer_cache/{模型}/{方法}.pt   # 解释缓存（main.py --do_explain）
-│  ├─ variant_data.pt              #   语义变体数据（generate_variants.py）
-│  └─ results/{模型}/              #   评估结果
-│     ├─ {方法}.res                #   忠实性/定位指标：PN、PS、F1、TLC、FLC 等
-│     └─ {方法}_robustness.res     #   鲁棒性指标：NI / SI / PC
+│  ├─ explainer_cache/{model}/{method}.pt   # Explanation cache (main.py --do_explain)
+│  ├─ variant_data.pt              #   Semantic variant data (generate_variants.py)
+│  └─ results/{model}/             #   Evaluation results
+│     ├─ {method}.res              #   Faithfulness/localization metrics: PN, PS, F1, TLC, FLC, etc.
+│     └─ {method}_robustness.res   #   Robustness metrics: NI / SI / PC
 ├─ processed/
-│  ├─ bigvul/                      #   Joern 代码图（code_graph_gen.py）
-│  │  ├─ before/                   #     修复前（漏洞）代码图 .c/.nodes.json/.edges.json
-│  │  ├─ after/                    #     修复后代码图
-│  │  └─ eval/statement_labels.pkl #     删除/添加行标签（line_extract.py）
-│  └─ vul_graph_dataset/           #   分区图数据集（graph_dataset.py）
+│  ├─ bigvul/                      #   Joern code graphs (code_graph_gen.py)
+│  │  ├─ before/                   #     Pre-fix (vulnerable) code graphs .c/.nodes.json/.edges.json
+│  │  ├─ after/                    #     Post-fix code graphs
+│  │  └─ eval/statement_labels.pkl #     Deleted/added line labels (line_extract.py)
+│  └─ vul_graph_dataset/           #   Partitioned graph datasets (graph_dataset.py)
 │     ├─ train_processed/ val_processed/ test_processed/
 ```
-
