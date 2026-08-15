@@ -101,6 +101,7 @@ printf 'Y\n/bin/joern\ny\n/usr/local/bin\n\n'  | sudo ./joern-install.sh --inter
 
 For those attempting to use a newer version of Joern, or if you have specific questions about Joern's functionality, we recommend visiting Joern's official repository: [Joern GitHub Repository](https://github.com/joernio/joern). It provides comprehensive documentation and insights on code graph generation and more.
 
+The complete environment configuration information can be found in the `requirement.txt` file under the eovd directory
 # Data Preparation
 
 Our data preparation process is closely related to the [LineVd](https://github.com/davidhin/linevd) project. Below is a step-by-step guide to setting up and processing the dataset.
