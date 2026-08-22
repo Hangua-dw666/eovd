@@ -1,8 +1,8 @@
-# A Systematic Evaluation of GNN Explainers for Vulnerability Detection: Faithfulness, Semantic Alignment, and Robustness
+# Beyond General-Graph Benchmarks: Evaluating GNN Explainers for Vulnerability Detection across Faithfulness, Semantic Alignment, and Robustness
 
 Welcome to our code repository 🌟.
 
-Here we provide the PyTorch implementation of our paper 📚 "A Systematic Evaluation of GNN Explainers for Vulnerability Detection: Faithfulness, Semantic Alignment, and Robustness".
+Here we provide the PyTorch implementation of our paper 📚 "Beyond General-Graph Benchmarks: Evaluating GNN Explainers for Vulnerability Detection across Faithfulness, Semantic Alignment, and Robustness".
 
 We are excited to share our work with the community and encourage collaborative exploration and discussion.
 
